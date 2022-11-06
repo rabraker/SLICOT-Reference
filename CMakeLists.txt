@@ -14,7 +14,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
-add_subdirectory(include/slicot)
+add_subdirectory(c_interface)
 # add_subdirectory(tests)
 
 #
