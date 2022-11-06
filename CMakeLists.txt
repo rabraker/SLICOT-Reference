@@ -20,15 +20,13 @@ add_subdirectory(c_interface)
 #
 # Install
 #
-message("export: ${TARGETS_EXPORT_NAME}")
-message("lib dir : ${CMAKE_INSTALL_LIBDIR}")
-
 install(
   TARGETS slicot slicot_c
   EXPORT SlicotTargets)
 
 export(
-  TARGETS slicot slicot_c NAMESPACE slicot:: FILE SlicotTargets.cmake
+  TARGETS slicot slicot_c
+  NAMESPACE slicot:: FILE SlicotTargets.cmake
 )
 
 install(

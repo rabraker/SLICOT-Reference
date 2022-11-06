@@ -1,25 +1,35 @@
 # Generate header files for slicot.
 
-include(FortranCInterface)
-FortranCInterface_HEADER(slicot_mangle.h
-  MACRO_NAMESPACE "SLICOT_C_")
-
-message(${FortranCInterface_MODULE_CASE})
+# Defines ${SLICOT_SRCS}
 include("${CMAKE_SOURCE_DIR}/cmake/slicot_sources.cmake")
 
-list(APPEND _categories analysis math synthesis transformations)
-foreach(category ${_categories})
-  message("CATEGORY ${category}")
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/slicot/${category}.h
-    COMMAND  python3 ${CMAKE_CURRENT_LIST_DIR}/generate-c-headers.py
-    --category=${category} --output-dir=${CMAKE_CURRENT_BINARY_DIR}/include/slicot
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/generate-c-headers.py)
+# gfortran won't generate a prototype for subroutines which take a callback.
+list(APPEND _do_not_export
+  "mb02xd" "md03bd" "mb02wd" "md03ad")
 
-  add_custom_target(run_${category} ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/slicot/${category}.h)
+foreach(_path_fname ${SLICOT_SOURCES})
+  string(REGEX REPLACE "\/.*\/src\/" "" _src_fname ${_path_fname})
+  string(REGEX REPLACE "\.f$" "" _h_name_upper ${_src_fname})
+  string(TOLOWER ${_h_name_upper} _h_name )
+
+  if(_h_name IN_LIST _do_not_export)
+    continue()
+  endif()
+
+  set(_header_path ${CMAKE_CURRENT_BINARY_DIR}/include/slicot/${_h_name}.h)
+
+  list(APPEND _install_headers ${_header_path})
+  add_custom_command(
+    OUTPUT ${_header_path}
+    COMMAND  gfortran -fc-prototypes-external -fsyntax-only ${_path_fname}
+    > ${_header_path}
+    DEPENDS ${_path_fname}
+    )
+  add_custom_target(run_${_h_name} ALL
+    DEPENDS ${_header_path})
 endforeach()
+
+
 add_library(slicot_c INTERFACE)
 add_library(${PROJECT_NAME}::slicot_c ALIAS slicot_c)
 
@@ -30,12 +40,6 @@ target_include_directories(slicot_c
   )
 
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/slicot_mangle.h
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/slicot"
-  )
-foreach(category ${_categories})
-  install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/include/slicot/${category}.h
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/slicot"
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
     )
-endforeach()
