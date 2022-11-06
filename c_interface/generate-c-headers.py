@@ -25,7 +25,7 @@ F2C_TYPE_MAP = {
     'integer': 'int',
     'character': 'char',
     'double precision': 'double',
-    'logical': 'bool',
+    'logical': 'int',  # numpy appears to (maybe) use size_t
     'complex': 'double _Complex',
 }
 
