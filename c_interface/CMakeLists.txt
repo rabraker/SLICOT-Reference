@@ -7,6 +7,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/slicot_sources.cmake")
 list(APPEND _do_not_export
   "mb02xd" "md03bd" "mb02wd" "md03ad")
 
+file(MAKE_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/include/slicot)
 foreach(_path_fname ${SLICOT_SOURCES})
   string(REGEX REPLACE "\/.*\/src\/" "" _src_fname ${_path_fname})
   string(REGEX REPLACE "\.f$" "" _h_name_upper ${_src_fname})
@@ -21,9 +22,11 @@ foreach(_path_fname ${SLICOT_SOURCES})
   list(APPEND _install_headers ${_header_path})
   add_custom_command(
     OUTPUT ${_header_path}
-    COMMAND  gfortran -fc-prototypes-external -fsyntax-only ${_path_fname}
+    COMMAND gfortran -fc-prototypes-external -fsyntax-only ${_path_fname}
     > ${_header_path}
-    DEPENDS ${_path_fname}
+    DEPENDS
+    ${_path_fname}
+    ${CMAKE_CURRENT_BINARY_DIR}/include/slicot
     )
   add_custom_target(run_${_h_name} ALL
     DEPENDS ${_header_path})
